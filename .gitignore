@@ -46,4 +46,4 @@ app.*.map.json
 
 #Exception folder
 test/.test_coverage.dart
-coverage
+#coverage
