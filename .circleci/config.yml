@@ -12,7 +12,19 @@ commands:
           keys:
             - gem-cache-{{ arch }}-{{ checksum "Gemfile.lock" }}
             - gem-cache-{{ arch }} # used if checksum fails
-
+      - run:
+          name: Set ruby version
+          command: echo "ruby-2.6.3" > ~/.ruby-version
+      - run:
+          name: Install bundler
+          command: sudo gem install bundler:2.1.4
+      - run:
+          name: Run bundle install
+          command: bundle install --path vendor/bundle
+      - save_cache:
+          key: gem-cache-{{ arch }}-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
   install_flutter_sdk:
     steps:
       - run:
@@ -36,7 +48,6 @@ commands:
           name: Pod install
           command: pod install
           working_directory: ios
-
   fastlane_ios:
     steps:
       - run:
@@ -91,6 +102,78 @@ references:
     attach_workspace:
       at: ./
 
+jobs:
+  run_test:
+    docker:
+      - image: cirrusci/flutter:v1.15.3
+    steps:
+      - checkout
+      - install_ruby_gems
+      - run_test_coverage
+  build_ios_dev:
+    executor:
+      name: build_ios_executor
+    environment:
+      FASTLANE_LANE: dev
+    steps:
+      - checkout
+      - install_ruby_gems
+      - install_flutter_sdk
+      - install_gnu_sed
+      - install_lcov
+      - <<: *workspace_gcp_envs
+      - <<: *env_var_ios
+      - setup_flutter
+      - run_test_coverage
+      - fastlane_ios
+  build_ios_fe:
+    executor:
+      name: build_ios_executor
+    environment:
+      FASTLANE_LANE: stg_fe
+    steps:
+      - checkout
+      - install_ruby_gems
+      - install_flutter_sdk
+      - install_gnu_sed
+      - install_lcov
+      - <<: *workspace_gcp_envs
+      - <<: *env_var_ios
+      - setup_flutter
+      - run_test_coverage
+      - fastlane_ios
+  build_ios_su:
+    executor:
+      name: build_ios_executor
+    environment:
+      FASTLANE_LANE: prod
+    steps:
+      - checkout
+      - install_ruby_gems
+      - install_flutter_sdk
+      - install_gnu_sed
+      - install_lcov
+      - <<: *workspace_gcp_envs
+      - <<: *env_var_ios
+      - setup_flutter
+      - run_test_coverage
+      - fastlane_ios
+  build_android_dev:
+    docker:
+      - image: cirrusci/flutter:v1.15.3
+    environment:
+      FASTLANE_LANE: dev
+    steps:
+      - checkout
+      - install_ruby_gems
+      - <<: *workspace_gcp_envs
+      - <<: *env_var_android
+      - run_test_coverage
+      - run:
+          name: flutter build
+          command: flutter build appbundle --flavor development --release --target lib/main_development.dart
+      - fastlane_android
+
 workflows:
   test:
     jobs:
@@ -101,7 +184,7 @@ workflows:
           filters:
             branches:
               only:
-                - circleci-project-setup
+                - release/dev
             # tags:
             #   only: /^dev.*/
             # branches:
@@ -110,7 +193,7 @@ workflows:
           filters:
             branches:
               only:
-                - circleci-project-setup
+                - staging
             # tags:
             #   only: /^dev.*/
             # branches:
@@ -119,7 +202,7 @@ workflows:
           filters:
             branches:
               only:
-                - circleci-project-setup
+                - release/su
             # tags:
             #   only: /^dev.*/
             # branches:
@@ -128,4 +211,4 @@ workflows:
           filters:
             branches:
               only:
-                - circleci-project-setup
+                - release/dev
