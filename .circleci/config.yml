@@ -184,7 +184,7 @@ workflows:
           filters:
             branches:
               only:
-                - release/dev
+                - circleci-project-setup
             # tags:
             #   only: /^dev.*/
             # branches:
@@ -193,7 +193,7 @@ workflows:
           filters:
             branches:
               only:
-                - staging
+                - circleci-project-setup
             # tags:
             #   only: /^dev.*/
             # branches:
@@ -202,7 +202,7 @@ workflows:
           filters:
             branches:
               only:
-                - release/su
+                - circleci-project-setup
             # tags:
             #   only: /^dev.*/
             # branches:
@@ -211,4 +211,4 @@ workflows:
           filters:
             branches:
               only:
-                - release/dev
+                - circleci-project-setup
