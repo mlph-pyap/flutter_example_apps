@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:potatoes_app/util/apps/themes.dart';
-class MyLaunchPage extends StatefulWidget {
-  MyLaunchPage({Key key, this.title}) : super(key: key);
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -15,10 +15,10 @@ class MyLaunchPage extends StatefulWidget {
   final String title;
 
   @override
-  _MyLaunchPageState createState() => _MyLaunchPageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyLaunchPageState extends State<MyLaunchPage> {
+class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   void _incrementCounter() {
@@ -31,27 +31,15 @@ class _MyLaunchPageState extends State<MyLaunchPage> {
       _counter++;
     });
   }
-  bool is_initialize = false;
-  void readyTheme(){
-    setState(() {
-      Future.delayed(Duration(milliseconds: 5000),
-              () async {
-          if(is_initialize ==false){
-            Navigator.of(context).pushNamedAndRemoveUntil("/home", (Route<dynamic> route) => false);
-          }
-          is_initialize = true;
-
-            // Navigator.pushReplacementNamed(context, '/login');
-          });
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
-
-    readyTheme();
-
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -59,7 +47,7 @@ class _MyLaunchPageState extends State<MyLaunchPage> {
         title: Text(widget.title),
       ),
 
-      //drawer:pageDrawer(),
+      drawer:pageDrawer(context),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -81,12 +69,20 @@ class _MyLaunchPageState extends State<MyLaunchPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Launch page:',
-            )
+              'You have pushed the button this many times:',
+            ),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headline4,
+            ),
           ],
         ),
       ),
-      // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

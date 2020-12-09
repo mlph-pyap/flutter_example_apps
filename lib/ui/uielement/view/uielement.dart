@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:potatoes_app/util/apps/themes.dart';
-class MyLaunchPage extends StatefulWidget {
-  MyLaunchPage({Key key, this.title}) : super(key: key);
+
+class MyUIElementPage extends StatefulWidget {
+  MyUIElementPage({Key key, this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -15,10 +16,10 @@ class MyLaunchPage extends StatefulWidget {
   final String title;
 
   @override
-  _MyLaunchPageState createState() => _MyLaunchPageState();
+  _MyUIElementPageState createState() => _MyUIElementPageState();
 }
 
-class _MyLaunchPageState extends State<MyLaunchPage> {
+class _MyUIElementPageState extends State<MyUIElementPage> {
   int _counter = 0;
 
   void _incrementCounter() {
@@ -31,26 +32,9 @@ class _MyLaunchPageState extends State<MyLaunchPage> {
       _counter++;
     });
   }
-  bool is_initialize = false;
-  void readyTheme(){
-    setState(() {
-      Future.delayed(Duration(milliseconds: 5000),
-              () async {
-          if(is_initialize ==false){
-            Navigator.of(context).pushNamedAndRemoveUntil("/home", (Route<dynamic> route) => false);
-          }
-          is_initialize = true;
-
-            // Navigator.pushReplacementNamed(context, '/login');
-          });
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
-
-    readyTheme();
 
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +43,7 @@ class _MyLaunchPageState extends State<MyLaunchPage> {
         title: Text(widget.title),
       ),
 
-      //drawer:pageDrawer(),
+      drawer:pageDrawer(context),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -78,15 +62,23 @@ class _MyLaunchPageState extends State<MyLaunchPage> {
           // center the children vertically; the main axis here is the vertical
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Launch page:',
+              'UI Element',
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                    "/uielement/viewcanvas", arguments: (Route<dynamic> route) => false);
+              },
             )
           ],
         ),
       ),
-      // This trailing comma makes auto-formatting nicer for build methods.
+       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
