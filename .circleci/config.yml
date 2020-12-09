@@ -1,14 +1,131 @@
 version: 2.1
 
-orbs:
-  android: circleci/android@0.2.1
+executors:
+  build_ios_executor:
+    macos:
+      xcode: '11.5.0'
 
-jobs:
-  build:
-    executor: android/android
-
+commands:
+  install_ruby_gems:
     steps:
-      - checkout
+      - restore_cache:
+          keys:
+            - gem-cache-{{ arch }}-{{ checksum "Gemfile.lock" }}
+            - gem-cache-{{ arch }} # used if checksum fails
+
+  install_flutter_sdk:
+    steps:
       - run:
-          command: ./gradlew build
- 
+          name: download flutter SDK
+          command: git clone -b v1.15.3 https://github.com/flutter/flutter.git flutter
+      - run:
+          name: export flutter path
+          command: |
+            pwd
+            echo 'export PATH="$PATH:`pwd`/flutter/bin"' >> $BASH_ENV
+            source $BASH_ENV
+  setup_flutter:
+    steps:
+      - run:
+          name: Get packages flutter
+          command: flutter pub get
+      - run:
+          name: Get cache
+          command: flutter precache --no-android
+      - run:
+          name: Pod install
+          command: pod install
+          working_directory: ios
+
+  fastlane_ios:
+    steps:
+      - run:
+          name: fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
+          working_directory: ios
+  fastlane_android:
+    steps:
+      - run:
+          name: fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
+          working_directory: android
+  install_gnu_sed:
+    steps:
+      - run:
+          name: gnu-sed
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install gnu-sed
+  install_lcov:
+    steps:
+      - run:
+          name: install lcov
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install lcov
+  run_test_coverage:
+    steps:
+      - run:
+          name: Run test
+          command: flutter test --coverage
+          when: always
+      - run:
+          name: Run genhtml lcov
+          when: always
+          command: genhtml coverage/lcov.info -o coverage/html
+      - store_artifacts:
+          path: ./coverage
+
+references:
+  env_var_ios: &env_var_ios
+    run:
+      name: Add Environment variable ios
+      command: |
+        set -xe
+        ls -la
+        ./ops/env_var_ios.sh
+  env_var_android: &env_var_android
+    run:
+      name: Add Environment variable android
+      command: |
+        set -xe
+        ls -la
+        ./ops/env_var_android.sh
+  workspace_gcp_envs: &workspace_gcp_envs
+    attach_workspace:
+      at: ./
+
+workflows:
+  test:
+    jobs:
+      - run_test
+  build_app:
+    jobs:
+      - build_ios_dev:
+          filters:
+            branches:
+              only:
+                - circleci-project-setup
+            # tags:
+            #   only: /^dev.*/
+            # branches:
+            #   ignore: /.*/
+      - build_ios_fe:
+          filters:
+            branches:
+              only:
+                - circleci-project-setup
+            # tags:
+            #   only: /^dev.*/
+            # branches:
+            #   ignore: /.*/
+      - build_ios_su:
+          filters:
+            branches:
+              only:
+                - circleci-project-setup
+            # tags:
+            #   only: /^dev.*/
+            # branches:
+            #   ignore: /.*/
+      - build_android_dev:
+          filters:
+            branches:
+              only:
+                - circleci-project-setup
